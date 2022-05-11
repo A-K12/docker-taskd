@@ -16,10 +16,15 @@ if ! test -e ${TASKDDATA}/config; then
   taskd init
   taskd config --force log ${TASKDDATA}/log/taskd.log
 
-  # Copy tools for certificates generation and generate it
+  # Copy tools for certificates generation
   cp /usr/share/taskd/pki/generate* ${TASKDDATA}/pki
   cp /usr/share/taskd/pki/vars ${TASKDDATA}/pki
-  cd ${TASKDDATA}/pki
+  
+  # Change CN line in vars file
+  cd ${TASKDDATA}/pki 
+  sed -i s/localhost/${TASKDHOST:-localhost}/ ./vars
+  
+  # Generate certificates
   ./generate
   cd /
 
@@ -31,8 +36,15 @@ if ! test -e ${TASKDDATA}/config; then
   taskd config --force server.crl ${TASKDDATA}/pki/server.crl.pem
   taskd config --force ca.cert ${TASKDDATA}/pki/ca.cert.pem
 
+  # Create org and user and generate user certificates
+  taskd add org Main 
+  taskd add user Main MainUser
+  cd ${TASKDDATA}/pki
+  ./generate.client MainUser
+  cd /
+   
   # And finaly set taskd to listen in default port
-  taskd config --force server 0.0.0.0:53589
+  taskd config --force server 0.0.0.0:${TASKDPORT:-53589}
 
 fi
 
