@@ -1,6 +1,6 @@
 ARG ALPINE_VERSION
 
-FROM alpine:${ALPINE_VERSION}
+FROM alpine:${ALPINE_VERSION:-3.14.3}
 
 # Install necessary stuff
 RUN apk -U --no-progress upgrade && \
